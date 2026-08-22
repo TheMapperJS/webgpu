@@ -32,15 +32,10 @@ struct VertexOutput {
 fn vs_main(input: VertexInput) -> VertexOutput {
     var output: VertexOutput;
 
-    // Position
     let worldPos = vec4<f32>(input.position, 1.0);
     output.position = scene.viewProjection * worldPos;
     output.worldPosition = worldPos.xyz;
-
-    // Normal
     output.normal = input.normal;
-
-    // Color
     output.color = input.color;
 
     return output;
@@ -50,17 +45,25 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
     let normal = normalize(input.normal);
 
-    // Simple directional lighting
+    // Directional lighting
     let nDotL = max(dot(normal, -scene.lightDirection), 0.0);
     let diffuse = scene.lightColor * scene.lightIntensity * nDotL;
     let ambient = scene.ambientColor * scene.ambientIntensity;
 
     let finalColor = input.color.rgb * (diffuse + ambient);
 
-    // Simple gamma correction
+    // Gamma correction
     let gammaColor = pow(finalColor, vec3<f32>(1.0 / 2.2));
 
-    return vec4<f32>(gammaColor, input.color.a);
+    // Distance fog blending
+    let dist = distance(input.worldPosition, scene.cameraPosition);
+    let fogStart = 60.0;
+    let fogEnd = 200.0;
+    let fogFactor = clamp((dist - fogStart) / (fogEnd - fogStart), 0.0, 1.0);
+    let skyColor = vec3<f32>(0.4, 0.6, 0.9);
+    let colorWithFog = mix(gammaColor, skyColor, fogFactor);
+
+    return vec4<f32>(colorWithFog, input.color.a);
 }
 ";
 }

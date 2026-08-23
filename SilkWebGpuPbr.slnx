@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SilkWebGpuPbr.csproj" />
+  <Project Path="SilkWebGpuPbr.Tests/SilkWebGpuPbr.Tests.csproj" />
+</Solution>

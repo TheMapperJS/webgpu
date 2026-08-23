@@ -66,7 +66,7 @@ public static unsafe class Program
         _chunkRenderer = new ChunkRenderer(_wgpu, _device, _queue, _surfaceFormat, DepthFormat);
         _worldManager = new WorldManager(_wgpu, _device, _queue);
 
-        _worldManager.GenerateWorld(4, 1, 4);
+        _worldManager.GenerateWorld(6, 2, 6);
     }
 
     private static Adapter* RequestAdapter()
@@ -223,23 +223,26 @@ public static unsafe class Program
 
         RenderPassEncoder* pass = _wgpu.CommandEncoderBeginRenderPass(encoder, &passDescriptor);
 
-        float radius = 100.0f;
-        float camX = MathF.Sin((float)_time * 0.5f) * radius;
-        float camZ = MathF.Cos((float)_time * 0.5f) * radius;
-        Vector3 cameraPosition = new Vector3(camX + 64, 40, camZ + 64);
+        float radius = 120.0f;
+        float camX = MathF.Sin((float)_time * 0.2f) * radius;
+        float camZ = MathF.Cos((float)_time * 0.2f) * radius;
+        Vector3 cameraPosition = new Vector3(camX + 96, 50 + MathF.Sin((float)_time * 0.1f) * 10, camZ + 96);
 
-        Matrix4x4 view = Matrix4x4.CreateLookAt(cameraPosition, new Vector3(64, 0, 64), Vector3.UnitY);
+        Matrix4x4 view = Matrix4x4.CreateLookAt(cameraPosition, new Vector3(96, 16, 96), Vector3.UnitY);
         float aspect = (float)_surfaceConfiguration.Width / _surfaceConfiguration.Height;
         Matrix4x4 projection = Matrix4x4.CreatePerspectiveFieldOfView(MathF.PI / 4.0f, aspect, 0.1f, 1000.0f);
+
+        float sunAngle = (float)_time * 0.3f;
+        Vector3 lightDir = Vector3.Normalize(new Vector3(MathF.Cos(sunAngle), -0.8f, MathF.Sin(sunAngle)));
 
         _chunkRenderer.UpdateScene(GpuSceneData.Create(
             view * projection,
             cameraPosition,
-            Vector3.Normalize(new Vector3(-0.5f, -1.0f, -0.5f)),
-            new Vector3(1.0f, 0.95f, 0.9f),
-            4.0f,
-            new Vector3(0.4f, 0.6f, 0.9f),
-            1.0f
+            lightDir,
+            new Vector3(1.0f, 0.95f, 0.85f),
+            3.5f,
+            new Vector3(0.4f, 0.5f, 0.7f),
+            0.8f
         ));
 
         _worldManager.Draw(pass, _chunkRenderer);
